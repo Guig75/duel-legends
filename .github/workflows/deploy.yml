@@ -29,12 +29,28 @@ jobs:
           mkdir site
           unzip -q site.zip -d site
 
+      - name: Fix leading-zero card IDs
+        working-directory: site
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/fetch_images.py')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace(
+              'url = f"https://images.ygoprodeck.com/images/cards/{cid}.jpg"',
+              'url = f"https://images.ygoprodeck.com/images/cards/{int(cid)}.jpg"'
+          )
+          p.write_text(s, encoding='utf-8')
+          PY
+
       - name: Fetch card scans
         working-directory: site
         run: python scripts/fetch_images.py
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
